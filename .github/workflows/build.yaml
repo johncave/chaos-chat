@@ -1,4 +1,4 @@
-name: Build Babelcom Image
+name: Build Image
 
 on:
   push:
