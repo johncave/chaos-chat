@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: chaos-chat
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chaos-chat
+  namespace: chaos-chat 
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chaos-chat
+  template:
+    metadata:
+      labels:
+        app: chaos-chat
+    spec:
+      containers:
+        - name: chaos-chat
+          image: ghcr.io/johncave/chaos-chat/chaos:latest # Change to your registry/image if pushing to a remote registry
+          ports:
+            - containerPort: 8080
+          imagePullPolicy: IfNotPresent
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chaos-chat
+  namespace: chaos-chat
+spec:
+  selector:
+    app: chaos-chat
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: ClusterIP
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: chaos-ingress
+  namespace: chaos-chat
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - chaos.myhackathon.app
+    secretName: chaos-chat-tls
+  rules:
+  - host: chaos.myhackathon.app
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: chaos-chat
+            port:
+              number: 80

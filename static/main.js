@@ -55,6 +55,13 @@ function getAvatarUrl(user) {
     return `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(user)}`;
 }
 
+function playNotificationSound() {
+    const audio = new Audio('/notification.mp3'); // Replace with the actual path to your sound file
+    audio.play().catch((error) => {
+        console.error("Error playing notification sound:", error);
+    });
+}
+
 function appendMessage(msg, user) {
     // Remove draft bubble if it exists for this user
     removeDraftBubble(user);
@@ -77,11 +84,12 @@ function appendMessage(msg, user) {
     username.textContent = user;
     content.appendChild(username);
     const text = document.createElement('div');
-    text.textContent = msg;
+    text.textContent = msg.replace("\n", "<br>");
     content.appendChild(text);
     bubble.appendChild(content);
     messagesDiv.appendChild(bubble);
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    playNotificationSound();
 }
 
 function showDraftBubble(user, contentText) {
